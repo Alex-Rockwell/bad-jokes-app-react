@@ -15,14 +15,13 @@ class JokeList extends Component {
     // }
 
     this.state = {
-      jokes: (JSON.parse(window.localStorage.jokes).length > 0) 
-                ? JSON.parse(window.localStorage.jokes) 
-                : [],
+      jokes: JSON.parse(window.localStorage.getItem("jokes") || "[]"),
       isLoading: true
     }
 
     this.changeScore = this.changeScore.bind(this)
     this.handleClick = this.handleClick.bind(this)
+    this.clear = this.clear.bind(this)
   }
   static defaultProps = {
     numJokes: 8
@@ -35,23 +34,31 @@ class JokeList extends Component {
     }
   }
   async getJokes() {
-    let url = 'https://icanhazdadjoke.com/'
-    let jokesArr = []
-    while (jokesArr.length < this.props.numJokes) {
-      let resp = await axios.get(url, {headers: {Accept: 'application/json'}})
-      let data = resp.data
-      let curJoke = {id: data.id, joke: data.joke, score: 0}
-      let containId = this.state.jokes.some(el => el.id === curJoke.id)
-      if (!containId) {
-        jokesArr.push(curJoke)
+    try {
+      this.setState({isLoading: true})
+      let url = 'https://icanhazdadjoke.com/'
+      let jokesArr = []
+      while (jokesArr.length < this.props.numJokes) {
+        let resp = await axios.get(url, {headers: {Accept: 'application/json'}})
+        let data = resp.data
+        let curJoke = {id: data.id, joke: data.joke, score: 0}
+        let containId = this.state.jokes.some(el => el.id === curJoke.id)
+        if (!containId) {
+          jokesArr.push(curJoke)
+        }
       }
+      // this.setState({jokes: jokesArr})
+      this.setState(st => ({
+        jokes: [...st.jokes, ...jokesArr]
+      }))
+      this.setState({isLoading: false})
+      window.localStorage.setItem(
+        'jokes',
+        JSON.stringify(this.state.jokes)
+      )
+    } catch(e) {
+      alert('net error')
     }
-    this.setState({jokes: jokesArr})
-    this.setState({isLoading: false})
-    window.localStorage.setItem(
-      'jokes',
-      JSON.stringify(this.state.jokes)
-    )
   }
   handleClick() {
     this.getJokes()
@@ -68,8 +75,13 @@ class JokeList extends Component {
     })); 
     saveToLs();
   }
+  clear() {
+    window.localStorage.clear()
+    this.setState({jokes: []})
+  }
   render() {
-    let jokesList = this.state.jokes.map(j => <Joke 
+    let sorted = this.state.jokes.sort((a,b) => b.score - a.score)
+    let jokesList = sorted.map(j => <Joke 
       text={j.joke} 
       key={j.id} 
       id={j.id} 
@@ -88,7 +100,8 @@ class JokeList extends Component {
         <div className="JokeList-sidebar">
           <h1 className="JokeList-title"><span>Bad</span> Jokes</h1>
           <img src={img} className="JokeList-img" alt="face"/>
-          <button className="JokeList-btn" onClick={this.handleClick}>New jokes</button>
+          <button className="JokeList-btn" onClick={this.handleClick}>Add Jokes</button>
+          <button className="JokeList-btn" onClick={this.clear}>Clear</button>
         </div>
         <div className="JokeList-main">
           {
