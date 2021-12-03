@@ -100,8 +100,12 @@ class JokeList extends Component {
         <div className="JokeList-sidebar">
           <h1 className="JokeList-title"><span>Bad</span> Jokes</h1>
           <img src={img} className="JokeList-img" alt="face"/>
-          <button className="JokeList-btn" onClick={this.handleClick}>Add Jokes</button>
-          <button className="JokeList-btn" onClick={this.clear}>Clear</button>
+          <button className="JokeList-btn" onClick={this.handleClick}>
+            Add Jokes
+          </button>
+          <button className="JokeList-btn" onClick={this.clear}>
+            Clear
+          </button>
         </div>
         <div className="JokeList-main">
           {
